@@ -11,21 +11,29 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 load_dotenv()
+os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-genai.configure(api_key=os.getenv("google_api_key"))
+
+
+
+
 
 def get_pdf_text(pdf_docs):
-    text = ""
+    text=""
     for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
+        pdf_reader= PdfReader(pdf)
         for page in pdf_reader.pages:
-            text+=page.extract_text()
-    return text
+            text+= page.extract_text()
+    return  text
+
+
 
 def get_text_chunks(text):
-    text_splitter  = RecursiveCharacterTextSplitter(chunk_size= 10000 , chunk_overlap=1000)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     chunks = text_splitter.split_text(text)
     return chunks
+
 
 def get_vector_store(text_chunks):
     embeddings = GoogleGenerativeAIEmbeddings(model = "models/embedding-001")
@@ -34,6 +42,7 @@ def get_vector_store(text_chunks):
 
 
 def get_conversational_chain():
+
     prompt_template = """
     Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in
     provided context just say, "answer is not available in the context", don't provide the wrong answer\n\n
@@ -41,7 +50,6 @@ def get_conversational_chain():
     Question: \n{question}\n
 
     Answer:
-
     """
 
     model = ChatGoogleGenerativeAI(model="gemini-pro",
@@ -52,6 +60,8 @@ def get_conversational_chain():
 
     return chain
 
+
+
 def user_input(user_question):
     embeddings = GoogleGenerativeAIEmbeddings(model = "models/embedding-001")
     
@@ -60,17 +70,20 @@ def user_input(user_question):
 
     chain = get_conversational_chain()
 
-
-    response  = chain(
+    
+    response = chain(
         {"input_documents":docs, "question": user_question}
-        , return_only_outputs = True )
+        , return_only_outputs=True)
+
     print(response)
-    st.write("Reply:", response["output_text"])
+    st.write("Reply: ", response["output_text"])
+
+
 
 
 def main():
     st.set_page_config("Chat PDF")
-    st.header("Chat with PDF using Gemini❤️")
+    st.header("Chat with PDF using Gemini")
 
     user_question = st.text_input("Ask a Question from the PDF Files")
 
